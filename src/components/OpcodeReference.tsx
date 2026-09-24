@@ -8,7 +8,6 @@ import {
   Search,
   ArrowRight,
   Code2,
-  Layers,
   CheckCircle,
   Copy,
   Terminal,
@@ -115,36 +114,36 @@ export const OpcodeReference: React.FC<OpcodeReferenceProps> = ({ onLoadExample 
   return (
     <div className="space-y-6">
       {/* Header and Filter Controls */}
-      <div className="bg-canvas-surface border border-border-subtle rounded p-5 space-y-4 shadow-lg">
+      <div className="bg-surface-container-lowest border border-outline-variant/60 rounded p-6 shadow-sm space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-bitcoin" />
-              <h2 className="text-lg font-bold text-slate-100 uppercase tracking-wider font-mono">
-                Opcode Reference Specification
+              <BookOpen className="w-5 h-5 text-primary" />
+              <h2 className="text-xl font-headline font-bold text-on-surface">
+                Bitcoin Script Opcode Lexicon
               </h2>
             </div>
-            <p className="text-xs text-slate-400">
-              Interactive reference manual for Bitcoin Script opcodes supported by this educational simulator.
+            <p className="text-xs text-secondary font-body">
+              Canonical reference manual for stack opcodes supported by this educational simulator.
             </p>
           </div>
 
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-canvas-dark border border-border-subtle text-slate-300 font-mono text-xs self-start md:self-auto">
-            <Terminal className="w-3.5 h-3.5 text-bitcoin" />
-            <span>Supported by this educational simulator</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-surface-container text-secondary font-mono text-xs border border-outline-variant/40">
+            <Terminal className="w-3.5 h-3.5 text-primary" />
+            <span>Deterministic VM Specification</span>
           </div>
         </div>
 
         {/* Search & Category Filter Bar */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2 border-t border-border-subtle">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-3 border-t border-surface-variant">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-4 h-4 text-secondary absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder="Search opcodes, stack effects, or descriptions..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-canvas-dark border border-border-subtle text-slate-200 pl-9 pr-4 py-2 rounded text-xs font-mono placeholder:text-slate-500 focus:outline-none focus:border-bitcoin transition-colors"
+              className="w-full bg-surface-container-low border border-outline-variant/60 text-on-surface pl-9 pr-4 py-2 rounded text-xs font-mono placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
             />
           </div>
 
@@ -153,10 +152,10 @@ export const OpcodeReference: React.FC<OpcodeReferenceProps> = ({ onLoadExample 
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1.5 text-xs font-mono rounded transition-colors ${
+                className={`px-3 py-1.5 text-xs font-label rounded transition-colors ${
                   selectedCategory === cat
-                    ? 'bg-bitcoin/20 text-bitcoin border border-bitcoin/40 font-bold'
-                    : 'bg-canvas-dark text-slate-400 border border-border-subtle hover:text-slate-200 hover:border-slate-600'
+                    ? 'bg-primary text-on-primary font-bold shadow-xs'
+                    : 'bg-surface-container-high text-secondary hover:text-on-surface hover:bg-surface-variant'
                 }`}
               >
                 {cat}
@@ -167,7 +166,7 @@ export const OpcodeReference: React.FC<OpcodeReferenceProps> = ({ onLoadExample 
       </div>
 
       {/* Grid of Opcodes */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {filteredOpcodes.map((op) => {
           const meta = OPCODE_META[op.name];
           const isCopied = copiedName === op.name;
@@ -175,61 +174,65 @@ export const OpcodeReference: React.FC<OpcodeReferenceProps> = ({ onLoadExample 
           return (
             <div
               key={op.name}
-              className="bg-canvas-surface border border-border-subtle rounded p-4 flex flex-col justify-between hover:border-slate-600 transition-all shadow-md group"
+              className="bg-surface-container-lowest border border-outline-variant/60 rounded p-5 flex flex-col justify-between hover:border-primary/60 transition-all shadow-sm group"
             >
               <div>
                 {/* Opcode Header */}
-                <div className="flex items-center justify-between pb-3 border-b border-border-subtle mb-3">
+                <div className="flex items-center justify-between pb-3 border-b border-surface-variant mb-3">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-base px-2.5 py-0.5 rounded bg-bitcoin/10 text-bitcoin border border-bitcoin/30">
+                    <span className="font-mono font-bold text-base px-2.5 py-0.5 rounded bg-primary-fixed text-primary">
                       {op.name}
                     </span>
-                    <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-canvas-dark text-slate-400 border border-border-subtle">
+                    <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-surface-container text-secondary font-medium">
                       {meta.category}
                     </span>
                   </div>
-                  <span className="text-[11px] font-mono text-slate-500">
+                  <span className="text-[11px] font-mono text-secondary">
                     Min Stack: {op.requiredStackSize}
                   </span>
                 </div>
 
                 {/* Description */}
-                <p className="text-xs text-slate-200 font-medium mb-1.5">
+                <p className="text-xs text-on-surface font-semibold font-body mb-1.5">
                   {op.description}
                 </p>
-                <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                <p className="text-xs text-secondary leading-relaxed mb-4 font-body">
                   {op.educationalSummary}
                 </p>
 
                 {/* Stack Effect Box */}
-                <div className="bg-canvas-dark p-3 rounded border border-border-subtle space-y-2 mb-4 font-mono text-xs">
+                <div className="bg-surface-container-low p-3 rounded border border-outline-variant/40 space-y-1.5 mb-4 font-mono text-xs">
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-500 uppercase text-[10px] tracking-wider">Before:</span>
-                    <span className="text-slate-300 font-bold">{meta.before}</span>
+                    <span className="text-secondary uppercase text-[10px] tracking-wider font-semibold">
+                      Before:
+                    </span>
+                    <span className="text-on-surface font-bold">{meta.before}</span>
                   </div>
-                  <div className="flex items-center justify-between pt-1 border-t border-slate-800">
-                    <span className="text-slate-500 uppercase text-[10px] tracking-wider">After:</span>
-                    <span className="text-cyan-400 font-bold">{meta.after}</span>
+                  <div className="flex items-center justify-between pt-1 border-t border-surface-variant/60">
+                    <span className="text-secondary uppercase text-[10px] tracking-wider font-semibold">
+                      After:
+                    </span>
+                    <span className="text-primary font-bold">{meta.after}</span>
                   </div>
                 </div>
               </div>
 
               {/* Example Snippet & Load Action */}
-              <div className="pt-3 border-t border-border-subtle space-y-2">
+              <div className="pt-3 border-t border-surface-variant space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
+                  <span className="text-[10px] font-label uppercase tracking-wider text-secondary font-bold">
                     Example Script:
                   </span>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleCopy(op.name, meta.example)}
-                      className="text-[11px] font-mono text-slate-400 hover:text-slate-200 flex items-center gap-1 transition-colors"
+                      className="text-[11px] font-label text-secondary hover:text-on-surface flex items-center gap-1 transition-colors cursor-pointer"
                       title="Copy example"
                     >
                       {isCopied ? (
                         <>
-                          <CheckCircle className="w-3 h-3 text-emerald-400" />
-                          <span className="text-emerald-400">Copied</span>
+                          <CheckCircle className="w-3 h-3 text-primary" />
+                          <span className="text-primary font-semibold">Copied</span>
                         </>
                       ) : (
                         <>
@@ -241,16 +244,16 @@ export const OpcodeReference: React.FC<OpcodeReferenceProps> = ({ onLoadExample 
                     {onLoadExample && (
                       <button
                         onClick={() => onLoadExample(meta.example)}
-                        className="text-[11px] font-mono text-bitcoin hover:text-amber-300 flex items-center gap-1 transition-colors ml-2"
+                        className="text-[11px] font-label text-primary hover:text-primary/80 font-bold flex items-center gap-1 transition-colors ml-2 cursor-pointer"
                       >
                         <Code2 className="w-3 h-3" />
-                        <span>Load</span>
+                        <span>Load in VM</span>
                       </button>
                     )}
                   </div>
                 </div>
 
-                <pre className="bg-slate-950 p-2.5 rounded border border-border-subtle font-mono text-xs text-amber-300 overflow-x-auto">
+                <pre className="bg-surface-container p-2.5 rounded border border-outline-variant/40 font-mono text-xs text-on-surface overflow-x-auto font-semibold">
                   {meta.example}
                 </pre>
               </div>
@@ -260,7 +263,7 @@ export const OpcodeReference: React.FC<OpcodeReferenceProps> = ({ onLoadExample 
       </div>
 
       {filteredOpcodes.length === 0 && (
-        <div className="text-center py-12 bg-canvas-surface border border-border-subtle rounded text-slate-500 font-mono text-xs">
+        <div className="text-center py-12 bg-surface-container-lowest border border-outline-variant/60 rounded text-secondary font-mono text-xs">
           No opcodes matching "{search}" in category "{selectedCategory}".
         </div>
       )}

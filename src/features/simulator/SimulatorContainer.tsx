@@ -11,23 +11,28 @@ import {
   ExecutionResult,
 } from '@/engine/types';
 import { Header, ActiveTab } from '@/components/Header';
+import { HeroBanner } from '@/components/HeroBanner';
 import { ScriptEditor } from '@/components/ScriptEditor';
+import { ControlBar } from '@/components/ControlBar';
+import { DisassemblyListing } from '@/components/DisassemblyListing';
 import { StackVisualizer } from '@/components/StackVisualizer';
 import { StepInspector } from '@/components/StepInspector';
 import { TraceTable } from '@/components/TraceTable';
 import { ResultBanner } from '@/components/ResultBanner';
+import { EducationalBanner } from '@/components/EducationalBanner';
 import { OpcodeReference } from '@/components/OpcodeReference';
 import { LearnPage } from '@/components/LearnPage';
-import { ControlBar } from '@/components/ControlBar';
+import { Footer } from '@/components/Footer';
 
 export const SimulatorContainer: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('simulator');
+  const [activePreset, setActivePreset] = useState<ScriptPreset>(DEMO_PRESETS[0]);
   const [scriptText, setScriptText] = useState<string>(DEMO_PRESETS[0].code);
   const [copied, setCopied] = useState<boolean>(false);
   const [validationNotice, setValidationNotice] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
-  // Instantiate simulator engine (persists across renders)
+  // Instantiate simulator engine
   const simulator = useMemo(() => new ScriptSimulator(), []);
 
   // UI state synchronized from simulator
@@ -69,7 +74,7 @@ export const SimulatorContainer: React.FC = () => {
     loadScriptToEngine(DEMO_PRESETS[0].code);
   }, [loadScriptToEngine]);
 
-  // Auto-play timer effect (stepping automatically every 650ms)
+  // Auto-play timer effect (650ms interval)
   useEffect(() => {
     if (!isPlaying) return;
 
@@ -96,6 +101,7 @@ export const SimulatorContainer: React.FC = () => {
   };
 
   const handleSelectPreset = (preset: ScriptPreset) => {
+    setActivePreset(preset);
     setScriptText(preset.code);
     setValidationNotice(null);
     loadScriptToEngine(preset.code);
@@ -124,9 +130,9 @@ export const SimulatorContainer: React.FC = () => {
 
     const instrs = simulator.getInstructions();
     if (instrs.length === 0) {
-      setValidationNotice('Notice: Script is empty. Enter instructions to execute.');
+      setValidationNotice('Notice: Script is empty. Enter instructions.');
     } else {
-      setValidationNotice(`✓ Static check passed: ${instrs.length} valid instructions.`);
+      setValidationNotice(`✓ Syntax check passed: ${instrs.length} valid instructions.`);
     }
 
     setTimeout(() => {
@@ -148,7 +154,6 @@ export const SimulatorContainer: React.FC = () => {
 
   const handleTogglePlay = () => {
     if (status === 'COMPLETED' || status === 'ERROR') {
-      // If completed or errored, restart from beginning
       simulator.reset();
       syncState();
       setIsPlaying(true);
@@ -206,10 +211,9 @@ export const SimulatorContainer: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  // Keyboard shortcuts (Cmd/Ctrl+Enter to run, Space to step when not in input)
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't intercept when user is actively typing in a textarea or input
       const target = e.target as HTMLElement;
       const isInput = target.tagName === 'TEXTAREA' || target.tagName === 'INPUT';
 
@@ -246,7 +250,6 @@ export const SimulatorContainer: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [simulator, handleRunAll, handleStep, handleReset, handleStepBack]);
 
-  // Find the active trace entry to show in the inspector
   const activeTraceEntry =
     trace.length > 0 ? trace[trace.length - 1] : undefined;
 
@@ -256,8 +259,8 @@ export const SimulatorContainer: React.FC = () => {
     currentStepIndex < instructions.length ? instructions[currentStepIndex] : null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-canvas-dark text-slate-100 font-sans selection:bg-bitcoin selection:text-canvas-dark pb-16">
-      {/* Top Header Navbar */}
+    <div className="min-h-screen flex flex-col bg-background text-on-surface font-body antialiased selection:bg-primary-fixed selection:text-on-primary-fixed">
+      {/* 1. Header Region & Top Branding */}
       <Header
         activeTab={activeTab}
         onSelectTab={setActiveTab}
@@ -266,45 +269,35 @@ export const SimulatorContainer: React.FC = () => {
         copied={copied}
       />
 
-      {/* Main Workspace Body */}
-      <main className="max-w-7xl w-full mx-auto px-4 md:px-6 py-6 flex-1">
+      {/* 2. Article Hero Banner (Stitch Canonical) */}
+      <HeroBanner
+        activeProgramName={activePreset.name}
+        opcodesCount={instructions.length}
+        status={status}
+        finalResult={finalResult}
+      />
+
+      {/* 3. Main Workstation Studio */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
         {activeTab === 'simulator' && (
-          <div className="space-y-6">
-            {/* Top Grid: Script Editor (Left) + Current Opcode & Stack (Right) */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-              {/* Left Column: Script Editor */}
-              <div className="lg:col-span-7 flex flex-col">
-                <ScriptEditor
-                  script={scriptText}
-                  onChange={handleScriptChange}
-                  onClear={handleClear}
-                  onValidate={handleValidate}
-                  onRun={handleRunAll}
-                  onSelectPreset={handleSelectPreset}
-                  currentStepIndex={currentStepIndex}
-                  instructions={instructions}
-                  isStepping={isStepping}
-                  isCompleted={isCompleted}
-                  error={error}
-                  validationNotice={validationNotice}
-                />
-              </div>
+          <div>
+            {/* Target Script Stream Section (Input & Presets) */}
+            <ScriptEditor
+              script={scriptText}
+              onChange={handleScriptChange}
+              onClear={handleClear}
+              onValidate={handleValidate}
+              onRun={handleRunAll}
+              onSelectPreset={handleSelectPreset}
+              currentStepIndex={currentStepIndex}
+              instructions={instructions}
+              isStepping={isStepping}
+              isCompleted={isCompleted}
+              error={error}
+              validationNotice={validationNotice}
+            />
 
-              {/* Right Column: Current Opcode Inspector & Stack Visualizer */}
-              <div className="lg:col-span-5 flex flex-col gap-4">
-                <StepInspector
-                  currentEntry={activeTraceEntry}
-                  currentStepIndex={currentStepIndex}
-                  totalSteps={instructions.length}
-                  nextInstruction={nextInstruction}
-                />
-                <div className="flex-1">
-                  <StackVisualizer stack={stack} />
-                </div>
-              </div>
-            </div>
-
-            {/* Execution Controls (Debugger Control Bar) */}
+            {/* Execution Controller & Step Bar (Buttons & 4-Metric Telemetry HUD) */}
             <ControlBar
               currentStepIndex={currentStepIndex}
               totalSteps={instructions.length}
@@ -322,15 +315,48 @@ export const SimulatorContainer: React.FC = () => {
               onRunAll={handleRunAll}
             />
 
-            {/* Final Result / Diagnostic Evaluation Banner */}
+            {/* Final Result Verdict Banner (when completed or error occurs) */}
             {isCompleted && finalResult && <ResultBanner result={finalResult} />}
 
-            {/* Step-by-Step Execution Trace Table */}
-            <TraceTable
-              trace={trace}
+            {/* 3-Column Studio Core (Matching Google Stitch Layout) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+              {/* Column 1 (5 cols): Disassembly Listing & Semantic Spec Card */}
+              <div className="lg:col-span-5">
+                <DisassemblyListing
+                  instructions={instructions}
+                  currentStepIndex={currentStepIndex}
+                  onSelectStep={handleSelectStep}
+                />
+              </div>
+
+              {/* Column 2 (4 cols): Stack Transformation (LIFO) & Transition Diff */}
+              <div className="lg:col-span-4 flex flex-col gap-4">
+                <StackVisualizer stack={stack} />
+                <StepInspector
+                  currentEntry={activeTraceEntry}
+                  currentStepIndex={currentStepIndex}
+                  totalSteps={instructions.length}
+                  nextInstruction={nextInstruction}
+                />
+              </div>
+
+              {/* Column 3 (3 cols): Execution Trace Register */}
+              <div className="lg:col-span-3">
+                <TraceTable
+                  trace={trace}
+                  currentStepIndex={currentStepIndex}
+                  onSelectStep={handleSelectStep}
+                  onExport={handleExportTrace}
+                />
+              </div>
+            </div>
+
+            {/* Educational Deep-Dive Banner / Execution Insights */}
+            <EducationalBanner
+              currentEntry={activeTraceEntry}
+              instructions={instructions}
               currentStepIndex={currentStepIndex}
-              onSelectStep={handleSelectStep}
-              onExport={handleExportTrace}
+              onOpenGuide={() => setActiveTab('opcodes')}
             />
           </div>
         )}
@@ -345,6 +371,9 @@ export const SimulatorContainer: React.FC = () => {
           <LearnPage onOpenSimulator={() => setActiveTab('simulator')} />
         )}
       </main>
+
+      {/* 4. Editorial Footnote / Lexicon Reference */}
+      <Footer />
     </div>
   );
 };

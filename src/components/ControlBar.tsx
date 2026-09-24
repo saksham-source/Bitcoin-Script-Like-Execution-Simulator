@@ -1,16 +1,7 @@
 'use client';
 
 import React from 'react';
-import {
-  RotateCcw,
-  SkipBack,
-  Play,
-  Pause,
-  SkipForward,
-  FastForward,
-  Activity,
-  Layers,
-} from 'lucide-react';
+import { RotateCcw, SkipBack, SkipForward, Play, Pause, FastForward } from 'lucide-react';
 import { Instruction, TraceEntry } from '@/engine/types';
 import { OPCODE_REGISTRY } from '@/engine/opcodes';
 
@@ -47,142 +38,130 @@ export const ControlBar: React.FC<ControlBarProps> = ({
   onStepNext,
   onRunAll,
 }) => {
-  // Current executing instruction
   const currentInstruction =
     currentStepIndex < instructions.length ? instructions[currentStepIndex] : null;
 
-  const opcodeInfo = currentInstruction
-    ? OPCODE_REGISTRY[currentInstruction.opcode]
-    : currentTraceEntry?.opcode && currentTraceEntry.opcode !== 'INITIAL'
-    ? OPCODE_REGISTRY[currentTraceEntry.opcode as keyof typeof OPCODE_REGISTRY]
-    : null;
-
-  // Calculate execution progress percentage
-  const progressPercent = totalSteps > 0 ? Math.min(100, Math.round((currentStepIndex / totalSteps) * 100)) : 0;
-
   return (
-    <div className="bg-[#161F30] border border-[#1E293B] rounded p-3 sm:p-4 shadow-sm">
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-        {/* Left: Debugger Control Buttons */}
+    <div className="mb-8 bg-surface-container-lowest border border-outline-variant/60 rounded p-4 shadow-sm">
+      <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4">
+        {/* Left: Control buttons */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Reset */}
           <button
             onClick={onReset}
-            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border border-[#1E293B] bg-[#111827] hover:bg-[#1E293B] text-[#94A3B8] hover:text-[#F8FAFC] transition active:scale-95"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-label font-semibold rounded border border-outline-variant bg-surface-container-low hover:bg-surface-container text-on-surface transition active:scale-95"
             title="Reset Simulator (R)"
           >
-            <RotateCcw className="w-3.5 h-3.5 text-[#94A3B8]" />
+            <RotateCcw className="w-4 h-4 text-secondary" />
             <span>Reset</span>
           </button>
 
-          {/* Previous Step */}
           <button
             onClick={onStepBack}
             disabled={!canStepBack || isPlaying}
-            className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition active:scale-95 ${
+            className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-label font-semibold rounded border transition active:scale-95 ${
               !canStepBack || isPlaying
-                ? 'border-[#1E293B] bg-[#111827]/40 text-[#64748B] cursor-not-allowed'
-                : 'border-[#1E293B] bg-[#111827] hover:bg-[#1E293B] text-[#F8FAFC]'
+                ? 'border-outline-variant/40 bg-surface-container-low/40 text-secondary/40 cursor-not-allowed'
+                : 'border-outline-variant bg-surface-container-low hover:bg-surface-container text-on-surface'
             }`}
             title="Step Back to Previous State"
           >
-            <SkipBack className="w-3.5 h-3.5" />
+            <SkipBack className="w-4 h-4" />
             <span>Step Back</span>
           </button>
 
-          {/* Play / Pause Auto-Runner */}
+          <button
+            onClick={onStepNext}
+            disabled={!canStepForward || isPlaying}
+            className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-label font-bold rounded shadow-sm transition active:scale-95 ${
+              !canStepForward || isPlaying
+                ? 'bg-surface-container-high text-secondary/60 cursor-not-allowed'
+                : 'bg-primary text-on-primary hover:bg-primary/90'
+            }`}
+            title="Step Opcode (Space)"
+          >
+            <SkipForward className="w-4 h-4" />
+            <span>Step Opcode</span>
+          </button>
+
           <button
             onClick={onTogglePlay}
             disabled={isCompleted}
-            className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded border transition active:scale-95 ${
+            className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-label font-bold rounded transition active:scale-95 ${
               isCompleted
-                ? 'border-[#1E293B] bg-[#111827]/40 text-[#64748B] cursor-not-allowed'
+                ? 'bg-surface-container-high text-secondary/40 cursor-not-allowed'
                 : isPlaying
-                ? 'border-[#38BDF8]/60 bg-[#38BDF8]/15 text-[#38BDF8]'
-                : 'border-[#1E293B] bg-[#111827] hover:bg-[#1E293B] text-[#F8FAFC]'
+                ? 'bg-primary-fixed text-primary border border-primary/40'
+                : 'bg-surface-container-highest hover:bg-secondary-container text-on-surface'
             }`}
-            title={isPlaying ? 'Pause Auto-Execution' : 'Play Auto-Step (Space)'}
+            title={isPlaying ? 'Pause Auto Run' : 'Auto Run (Space)'}
           >
             {isPlaying ? (
               <>
-                <Pause className="w-3.5 h-3.5 fill-[#38BDF8]" />
+                <Pause className="w-4 h-4 fill-current" />
                 <span>Pause</span>
               </>
             ) : (
               <>
-                <Play className="w-3.5 h-3.5 text-[#38BDF8] fill-[#38BDF8]" />
-                <span>Auto Play</span>
+                <Play className="w-4 h-4 fill-current" />
+                <span>Auto Run</span>
               </>
             )}
           </button>
 
-          {/* Next Step (Primary Amber Action) */}
-          <button
-            onClick={onStepNext}
-            disabled={!canStepForward || isPlaying}
-            className={`inline-flex items-center justify-center gap-2 px-4 py-1.5 text-xs font-bold rounded shadow-sm transition active:scale-95 ${
-              !canStepForward || isPlaying
-                ? 'bg-[#1E293B] text-[#64748B] border border-[#1E293B] cursor-not-allowed'
-                : 'bg-[#F7931A] hover:bg-[#E87A0C] text-[#0B0F17] shadow-[#F7931A]/10 hover:shadow-[#F7931A]/20'
-            }`}
-            title="Execute Next Single Instruction (Space)"
-          >
-            <SkipForward className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>{currentStepIndex === 0 ? 'Start Step' : 'Next Step'}</span>
-          </button>
-
-          {/* Run All */}
           <button
             onClick={onRunAll}
             disabled={isCompleted || isPlaying}
-            className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded border transition active:scale-95 ${
+            className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-label font-semibold rounded border transition active:scale-95 ${
               isCompleted || isPlaying
-                ? 'border-[#1E293B] bg-[#111827]/40 text-[#64748B] cursor-not-allowed'
-                : 'border-[#1E293B] bg-[#1E293B] hover:bg-[#334155] text-[#F8FAFC]'
+                ? 'border-outline-variant/40 bg-surface-container-low/40 text-secondary/40 cursor-not-allowed'
+                : 'border-outline-variant bg-surface-container hover:bg-surface-container-high text-on-surface'
             }`}
-            title="Execute Entire Script to Completion (Ctrl+Enter)"
+            title="Run All to Completion (Ctrl+Enter)"
           >
-            <FastForward className="w-3.5 h-3.5 text-[#10B981]" />
+            <FastForward className="w-4 h-4 text-primary" />
             <span>Run All</span>
           </button>
         </div>
 
-        {/* Center / Right: Debugger Telemetry HUD */}
-        <div className="flex flex-wrap items-center gap-4 text-xs font-mono">
-          {/* Step Count & Progress Bar */}
-          <div className="border-l-2 border-[#F7931A] pl-3 min-w-[150px]">
-            <div className="flex items-center justify-between text-[10px] uppercase font-sans font-semibold text-[#94A3B8] tracking-wider mb-1">
-              <span>Step Progress</span>
-              <span className="font-mono text-[#F8FAFC]">
-                {currentStepIndex} / {totalSteps}
-              </span>
+        {/* Right: VM Telemetry HUD with Left Primary Borders */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+          <div className="border-l-2 border-primary pl-3">
+            <div className="text-secondary font-label uppercase text-[10px] tracking-wider font-semibold">
+              Program Counter
             </div>
-            {/* Visual Progress Bar */}
-            <div className="w-full bg-[#111827] h-1.5 rounded overflow-hidden flex border border-[#1E293B]">
-              <div
-                className="bg-[#F7931A] h-full transition-all duration-300"
-                style={{ width: `${progressPercent}%` }}
-              ></div>
+            <div className="font-mono font-bold text-base text-on-surface">
+              PC: {currentStepIndex} / {totalSteps}
             </div>
           </div>
 
-          {/* Active Opcode Indicator */}
-          <div className="border-l-2 border-[#38BDF8] pl-3 min-w-[180px]">
-            <div className="text-[10px] uppercase font-sans font-semibold text-[#94A3B8] tracking-wider">
-              Current Opcode: <span className="text-[#38BDF8] font-mono font-bold">{currentInstruction ? currentInstruction.raw : isCompleted ? 'HALTED' : 'INITIAL'}</span>
+          <div className="border-l-2 border-primary pl-3">
+            <div className="text-secondary font-label uppercase text-[10px] tracking-wider font-semibold">
+              Current Opcode
             </div>
-            <div className="mt-0.5 text-[11px] text-[#94A3B8] font-sans truncate max-w-[220px]">
-              {opcodeInfo ? opcodeInfo.description : isCompleted ? 'Execution finished' : 'Ready to start'}
+            <div className="font-mono font-bold text-base text-primary">
+              {currentInstruction ? currentInstruction.raw : isCompleted ? 'HALTED' : 'INITIAL'}
             </div>
           </div>
 
-          {/* Stack Depth Counter */}
-          <div className="border-l-2 border-[#10B981] pl-3">
-            <div className="text-[10px] uppercase font-sans font-semibold text-[#94A3B8] tracking-wider">
+          <div className="border-l-2 border-primary pl-3">
+            <div className="text-secondary font-label uppercase text-[10px] tracking-wider font-semibold">
               Stack Depth
             </div>
-            <div className="font-bold text-sm text-[#F8FAFC] mt-0.5">
-              {stackDepth} <span className="text-[#64748B] text-[11px] font-normal">/ 1024</span>
+            <div className="font-mono font-bold text-base text-on-surface">
+              {stackDepth} / 1024
+            </div>
+          </div>
+
+          <div className="border-l-2 border-primary pl-3">
+            <div className="text-secondary font-label uppercase text-[10px] tracking-wider font-semibold">
+              Consensus State
+            </div>
+            <div
+              className={`font-mono font-bold text-base ${
+                isCompleted ? 'text-primary' : 'text-tertiary'
+              }`}
+            >
+              {isCompleted ? 'EVALUATED' : 'ACTIVE'}
             </div>
           </div>
         </div>

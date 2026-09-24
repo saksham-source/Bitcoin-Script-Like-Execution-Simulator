@@ -2,145 +2,112 @@
 
 import React from 'react';
 import { StackValue, formatStackValue } from '@/engine/types';
-import { Layers, ArrowDown, Database, Cpu } from 'lucide-react';
+import { Layers } from 'lucide-react';
 
 interface StackVisualizerProps {
   stack: StackValue[];
 }
 
 export const StackVisualizer: React.FC<StackVisualizerProps> = ({ stack }) => {
-  // LIFO Stack display: Top item (last in array) shown at the top of the container
+  // LIFO display: Top item is slot [0] in Stitch notation (last in array)
   const reversedStack = [...stack].reverse();
 
-  // Helper to format values into fixed hex/padded word representation like Stitch IDE
-  const getPaddedRepresentation = (item: StackValue): string => {
+  // Helper to format values into 64-character 32-byte hex representation as in Stitch
+  const get32ByteHexRepresentation = (item: StackValue): string => {
     if (item.type === 'boolean') {
-      return item.value ? '0x0000...0001 (OP_TRUE)' : '0x0000...0000 (OP_FALSE)';
+      return item.value
+        ? '0x0000000000000000000000000000000000000000000000000000000000000001'
+        : '0x0000000000000000000000000000000000000000000000000000000000000000';
     }
-    const hex = Math.abs(item.value).toString(16).padStart(4, '0');
-    return `0x0000...${hex} (dec: ${item.value})`;
+    const hex = Math.abs(item.value).toString(16).padStart(8, '0');
+    return `0x00000000000000000000000000000000000000000000000000000000${hex}`;
+  };
+
+  const getDecLabel = (item: StackValue): string => {
+    if (item.type === 'boolean') {
+      return item.value ? 'TRUE (0x01)' : 'FALSE (0x00)';
+    }
+    const hex = Math.abs(item.value).toString(16).padStart(2, '0');
+    return `0x${hex} (dec: ${item.value})`;
   };
 
   return (
-    <div className="bg-[#111827] border border-[#1E293B] rounded flex flex-col shadow-lg h-full overflow-hidden">
-      {/* Panel Header */}
-      <div className="bg-[#161F30] border-b border-[#1E293B] p-3 sm:px-4 flex items-center justify-between">
+    <div className="bg-surface-container-lowest border border-outline-variant/60 rounded shadow-sm overflow-hidden flex flex-col h-[480px]">
+      {/* Header */}
+      <div className="p-3.5 border-b border-surface-variant bg-surface-container-low flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Database className="w-4 h-4 text-[#F7931A]" />
-          <h3 className="font-semibold text-xs tracking-tight text-[#F8FAFC]">
-            LIFO Execution Stack
+          <Layers className="w-4 h-4 text-primary" />
+          <h3 className="font-headline font-semibold text-sm text-on-surface">
+            Bitcoin Script Stack (32-Byte Words)
           </h3>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono text-[#38BDF8] bg-[#0B0F17] px-2 py-0.5 rounded border border-[#1E293B]">
-            Stack Memory
-          </span>
-          <span className="text-[10px] font-mono text-[#94A3B8] bg-[#0B0F17] px-2 py-0.5 rounded border border-[#1E293B]">
-            Depth: <strong className="text-[#F7931A]">{stack.length}</strong> / 1024
-          </span>
-        </div>
-      </div>
-
-      {/* Sub-header: Top of Stack Guide Indicator */}
-      <div className="p-2 px-4 bg-[#161F30]/60 border-b border-[#1E293B] flex items-center justify-between text-[11px] font-mono">
-        <span className="text-[#F7931A] flex items-center gap-1.5 font-bold tracking-wider text-[10px] uppercase">
-          <ArrowDown className="w-3.5 h-3.5 stroke-[3]" />
-          <span>▲ Top of Stack (TOS) — Next Operand Consumed</span>
+        <span className="text-[11px] font-mono text-secondary bg-surface-container px-2 py-0.5 rounded">
+          LIFO Order
         </span>
-        <span className="text-[#64748B] text-[10px]">Pop Target</span>
       </div>
 
-      {/* Stack Items Chamber */}
-      <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2 bg-[#0B0F17]/80 min-h-[260px] max-h-[360px]">
+      {/* Sub-header */}
+      <div className="p-3 bg-surface-container-lowest border-b border-surface-variant/60 flex items-center justify-between text-xs">
+        <span className="font-label text-secondary font-medium">Top of Stack (μ_s[0])</span>
+        <span className="font-mono text-[11px] text-primary font-semibold">
+          Depth: {stack.length} / 1024
+        </span>
+      </div>
+
+      {/* Stack Container */}
+      <div className="flex-1 overflow-y-auto p-4 flex flex-col-reverse justify-end gap-2.5 bg-surface-container-low/40">
         {stack.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center p-6 border border-dashed border-[#1E293B] rounded space-y-3">
-            <div className="size-10 rounded bg-[#161F30] border border-[#1E293B] flex items-center justify-center text-[#64748B]">
-              <Layers className="w-5 h-5 text-[#64748B]" />
-            </div>
-            <div>
-              <div className="font-mono text-xs text-[#94A3B8] font-bold">
-                Stack Empty: [ ]
-              </div>
-              <p className="text-[11px] text-[#64748B] max-w-[240px] leading-relaxed mt-1">
-                Execute <code className="text-[#F7931A] font-bold">PUSH &lt;val&gt;</code> to place numeric operands onto the stack.
-              </p>
-            </div>
-            {/* Wireframe blueprint register slots */}
-            <div className="w-full max-w-[200px] space-y-1.5 pt-1 opacity-25 pointer-events-none">
-              <div className="border border-dashed border-[#334155] rounded py-1 text-center text-[10px] font-mono text-[#64748B]">
-                [Register 0 : Available]
-              </div>
-              <div className="border border-dashed border-[#334155] rounded py-1 text-center text-[10px] font-mono text-[#64748B]">
-                [Register 1 : Available]
-              </div>
-            </div>
+          <div className="border border-dashed border-outline-variant/60 rounded p-6 text-center text-xs font-mono text-secondary my-auto">
+            Stack Empty (μ_s = [ ])
           </div>
         ) : (
-          reversedStack.map((item, reverseIdx) => {
-            const originalIndex = stack.length - 1 - reverseIdx;
-            const isTop = reverseIdx === 0;
+          reversedStack.map((item, idx) => {
+            const isTop = idx === 0;
 
             return (
               <div
-                key={originalIndex}
-                className={`rounded p-3 transition-all duration-200 border relative ${
-                  isTop
-                    ? 'bg-[#161F30] border-[#F7931A] shadow-md shadow-[#F7931A]/10 ring-1 ring-[#F7931A]/40'
-                    : 'bg-[#111827] border-[#1E293B] text-[#94A3B8]'
+                key={idx}
+                className={`bg-surface-container-lowest rounded p-2.5 shadow-sm transition-all relative ${
+                  isTop ? 'border-2 border-primary' : 'border border-outline-variant/60'
                 }`}
               >
-                {/* Slot index badge & Type pill */}
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-[10px] font-mono uppercase font-bold tracking-wider px-1.5 py-0.5 rounded ${
-                        isTop
-                          ? 'bg-[#F7931A]/20 text-[#F7931A] border border-[#F7931A]/40'
-                          : 'bg-[#0B0F17] text-[#64748B] border border-[#1E293B]'
-                      }`}
-                    >
-                      Slot [{originalIndex}] {isTop ? '• TOS' : ''}
-                    </span>
-                  </div>
-
+                <div className="flex items-center justify-between mb-1">
                   <span
-                    className={`text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded ${
-                      item.type === 'boolean'
-                        ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
-                        : 'bg-[#38BDF8]/10 text-[#38BDF8] border border-[#38BDF8]/20'
+                    className={`text-[10px] font-mono uppercase tracking-wider font-semibold ${
+                      isTop ? 'text-primary' : 'text-secondary'
                     }`}
                   >
-                    {item.type}
+                    Slot [{idx}] {isTop ? '- Top of Stack' : ''}
+                  </span>
+                  <span className="text-[10px] font-mono text-secondary font-medium">
+                    {getDecLabel(item)}
                   </span>
                 </div>
-
-                {/* Primary Large Value Readout */}
-                <div className="flex items-baseline justify-between gap-2">
-                  <span
-                    className={`text-xl font-mono font-black tracking-wider ${
-                      item.type === 'boolean'
-                        ? item.value
-                          ? 'text-[#10B981]'
-                          : 'text-[#EF4444]'
-                        : 'text-[#F8FAFC]'
-                    }`}
-                  >
-                    {formatStackValue(item)}
-                  </span>
-                  <span className="text-[10px] font-mono text-[#64748B] truncate">
-                    {getPaddedRepresentation(item)}
-                  </span>
+                <div className="font-mono text-xs text-on-surface break-all font-semibold">
+                  {get32ByteHexRepresentation(item)}
                 </div>
               </div>
             );
           })
         )}
+
+        {/* Available hardware slots placeholders to convey physical LIFO model */}
+        {stack.length < 3 && (
+          <>
+            <div className="border border-dashed border-outline-variant/60 rounded p-2 text-center text-xs font-mono text-secondary/60">
+              Stack slot [{stack.length}] (Available)
+            </div>
+            <div className="border border-dashed border-outline-variant/40 rounded p-2 text-center text-xs font-mono text-secondary/40">
+              Stack slot [{stack.length + 1}] (Available)
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Panel Footer: Bottom of Stack Base Plate */}
-      <div className="p-2.5 px-4 bg-[#161F30] border-t border-[#1E293B] flex items-center justify-between text-[10px] font-mono text-[#64748B] uppercase tracking-wider">
-        <span className="text-slate-500">▼ LIFO Base Plate</span>
-        <span>64-bit Word Representation</span>
+      {/* Footer */}
+      <div className="p-3 bg-surface-container-low border-t border-surface-variant flex items-center justify-between text-[11px]">
+        <span className="text-secondary font-label">Word Alignment:</span>
+        <span className="font-mono font-medium text-on-surface">32-Byte Words / Big-Endian</span>
       </div>
     </div>
   );
