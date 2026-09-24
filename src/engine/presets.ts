@@ -71,4 +71,23 @@ EQUAL
 VERIFY
 PUSH 1`,
   },
+  {
+    id: 'demo-8-equalverify-valid',
+    name: 'Demo 8: EQUALVERIFY Guard (VALID)',
+    description: 'Verifies two items are equal, consumes them, then authorizes spend with PUSH 1.',
+    expectedResult: 'VALID',
+    code: `PUSH 100
+PUSH 100
+EQUALVERIFY
+PUSH 1`,
+  },
+  {
+    id: 'demo-9-empty-stack-invalid',
+    name: 'Demo 9: Empty Stack (INVALID)',
+    description: 'EQUALVERIFY consumes both values without leaving a truthy return value: rejected by Bitcoin consensus.',
+    expectedResult: 'INVALID',
+    code: `PUSH 100
+PUSH 100
+EQUALVERIFY`,
+  },
 ];

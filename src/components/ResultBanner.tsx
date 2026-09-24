@@ -135,6 +135,24 @@ export const ResultBanner: React.FC<ResultBannerProps> = ({ result }) => {
           </div>
         </div>
       )}
+
+      {/* Educational Callout: Empty Stack vs Consensus Validity */}
+      {!isValid && result.finalStack.length === 0 && (
+        <div className="mt-4 pt-4 border-t border-rose-200">
+          <div className="bg-surface-container-lowest p-3.5 rounded border border-rose-300 text-xs">
+            <div className="font-bold flex items-center gap-1.5 text-rose-800 mb-1 font-label uppercase text-[11px] tracking-wide">
+              <AlertTriangle className="w-4 h-4 text-rose-700 shrink-0" />
+              <span>Protocol Consensus Rule: Why is an empty stack evaluated as INVALID?</span>
+            </div>
+            <p className="font-body text-xs text-on-surface leading-relaxed mt-1">
+              Under canonical Bitcoin consensus rules (BIP 66 / Bitcoin Core interpreter), script execution <strong>cannot terminate on an empty stack</strong>. To authorize spending, the final stack must contain a <strong>truthy value</strong> (non-zero or <code className="font-mono font-bold bg-surface-container px-1 py-0.5 rounded text-primary">TRUE</code>).
+            </p>
+            <p className="font-body text-xs text-secondary leading-relaxed mt-1.5">
+              Opcodes like <code className="font-mono font-bold bg-surface-container px-1 py-0.5 rounded text-on-surface">EQUALVERIFY</code> and <code className="font-mono font-bold bg-surface-container px-1 py-0.5 rounded text-on-surface">VERIFY</code> are <strong>assertion guards</strong> that consume their operands upon verification. In standard Bitcoin scripts (such as P2PKH), they are placed in the middle of a script. To make this script evaluate to <code className="font-mono font-bold text-primary">VALID</code>, append <code className="font-mono font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded border border-primary/30">PUSH 1</code> at the end.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

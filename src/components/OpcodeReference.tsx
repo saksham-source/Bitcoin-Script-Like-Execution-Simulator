@@ -59,13 +59,13 @@ const OPCODE_META: Record<OpcodeName, OpcodeMeta> = {
     category: 'Control / Guard',
     before: '[ ..., x ]',
     after: '[ ... ] (halts if 0/FALSE)',
-    example: 'PUSH 1\nVERIFY',
+    example: 'PUSH 1\nVERIFY\nPUSH 1',
   },
   EQUALVERIFY: {
     category: 'Control / Guard',
     before: '[ ..., a, b ]',
     after: '[ ... ] (halts if a != b)',
-    example: 'PUSH 100\nPUSH 100\nEQUALVERIFY',
+    example: 'PUSH 100\nPUSH 100\nEQUALVERIFY\nPUSH 1',
   },
   DUP: {
     category: 'Stack',
