@@ -18,6 +18,7 @@ import { DisassemblyListing } from '@/components/DisassemblyListing';
 import { StackVisualizer } from '@/components/StackVisualizer';
 import { StepInspector } from '@/components/StepInspector';
 import { TraceTable } from '@/components/TraceTable';
+import { ConsensusAuditCard } from '@/components/ConsensusAuditCard';
 import { ResultBanner } from '@/components/ResultBanner';
 import { EducationalBanner } from '@/components/EducationalBanner';
 import { OpcodeReference } from '@/components/OpcodeReference';
@@ -320,8 +321,8 @@ export const SimulatorContainer: React.FC = () => {
 
             {/* 3-Column Studio Core (Matching Google Stitch Layout) */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-              {/* Column 1 (5 cols): Disassembly Listing & Semantic Spec Card */}
-              <div className="lg:col-span-5">
+              {/* Column 1 (4 cols): Disassembly Listing & Semantic Spec Card */}
+              <div className="lg:col-span-4">
                 <DisassemblyListing
                   instructions={instructions}
                   currentStepIndex={currentStepIndex}
@@ -340,13 +341,21 @@ export const SimulatorContainer: React.FC = () => {
                 />
               </div>
 
-              {/* Column 3 (3 cols): Execution Trace Register */}
-              <div className="lg:col-span-3">
+              {/* Column 3 (4 cols): Execution Trace Register & Consensus Audit Card */}
+              <div className="lg:col-span-4 flex flex-col gap-4">
                 <TraceTable
                   trace={trace}
                   currentStepIndex={currentStepIndex}
                   onSelectStep={handleSelectStep}
                   onExport={handleExportTrace}
+                />
+                <ConsensusAuditCard
+                  status={status}
+                  finalResult={finalResult}
+                  stack={stack}
+                  currentStepIndex={currentStepIndex}
+                  totalSteps={instructions.length}
+                  error={error}
                 />
               </div>
             </div>
