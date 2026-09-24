@@ -112,4 +112,72 @@ describe('Phase 4: Opcode Execution Engine', () => {
     expect(stack.size()).toBe(1);
     expect(stack.peek()).toEqual({ type: 'boolean', value: true });
   });
+
+  it('executes DUP correctly', () => {
+    const stack = new ScriptStack([{ type: 'number', value: 42 }]);
+    const res = OPCODE_REGISTRY.DUP.execute(
+      { index: 0, line: 1, opcode: 'DUP', raw: 'DUP' },
+      stack
+    );
+    expect(res.success).toBe(true);
+    expect(stack.size()).toBe(2);
+    expect(stack.pop('T').value).toBe(42);
+    expect(stack.pop('T').value).toBe(42);
+  });
+
+  it('executes SUB correctly', () => {
+    const stack = new ScriptStack([
+      { type: 'number', value: 10 },
+      { type: 'number', value: 3 },
+    ]);
+    const res = OPCODE_REGISTRY.SUB.execute(
+      { index: 0, line: 1, opcode: 'SUB', raw: 'SUB' },
+      stack
+    );
+    expect(res.success).toBe(true);
+    expect(stack.peek()).toEqual({ type: 'number', value: 7 });
+  });
+
+  it('executes DROP correctly', () => {
+    const stack = new ScriptStack([{ type: 'number', value: 100 }]);
+    const res = OPCODE_REGISTRY.DROP.execute(
+      { index: 0, line: 1, opcode: 'DROP', raw: 'DROP' },
+      stack
+    );
+    expect(res.success).toBe(true);
+    expect(stack.size()).toBe(0);
+  });
+
+  it('executes NOT correctly', () => {
+    const stack = new ScriptStack([{ type: 'boolean', value: true }]);
+    OPCODE_REGISTRY.NOT.execute(
+      { index: 0, line: 1, opcode: 'NOT', raw: 'NOT' },
+      stack
+    );
+    expect(stack.peek()).toEqual({ type: 'boolean', value: false });
+  });
+
+  it('executes EQUALVERIFY correctly for matching and non-matching', () => {
+    const stackMatch = new ScriptStack([
+      { type: 'number', value: 50 },
+      { type: 'number', value: 50 },
+    ]);
+    const resMatch = OPCODE_REGISTRY.EQUALVERIFY.execute(
+      { index: 0, line: 1, opcode: 'EQUALVERIFY', raw: 'EQUALVERIFY' },
+      stackMatch
+    );
+    expect(resMatch.success).toBe(true);
+    expect(stackMatch.size()).toBe(0);
+
+    const stackDiff = new ScriptStack([
+      { type: 'number', value: 50 },
+      { type: 'number', value: 99 },
+    ]);
+    const resDiff = OPCODE_REGISTRY.EQUALVERIFY.execute(
+      { index: 0, line: 1, opcode: 'EQUALVERIFY', raw: 'EQUALVERIFY' },
+      stackDiff
+    );
+    expect(resDiff.success).toBe(false);
+    expect(resDiff.error?.category).toBe('VERIFY_FAILED');
+  });
 });

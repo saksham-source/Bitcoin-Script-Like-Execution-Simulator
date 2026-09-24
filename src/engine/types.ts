@@ -17,7 +17,16 @@ export interface BooleanStackValue {
 
 export type StackValue = NumberStackValue | BooleanStackValue;
 
-export type OpcodeName = 'PUSH' | 'ADD' | 'EQUAL' | 'VERIFY';
+export type OpcodeName =
+  | 'PUSH'
+  | 'ADD'
+  | 'EQUAL'
+  | 'VERIFY'
+  | 'DUP'
+  | 'SUB'
+  | 'DROP'
+  | 'NOT'
+  | 'EQUALVERIFY';
 
 export interface Instruction {
   index: number;
@@ -33,6 +42,7 @@ export interface TraceEntry {
   step: number;
   instruction: string;
   opcode: string;
+  operation: string;
   stackBefore: StackValue[];
   stackAfter: StackValue[];
   status: 'INITIAL' | 'OK' | 'ERROR';
@@ -53,6 +63,8 @@ export interface ExecutionError {
   message: string;
   line?: number;
   instruction?: string;
+  step?: number;
+  opcode?: string;
 }
 
 export interface ExecutionResult {

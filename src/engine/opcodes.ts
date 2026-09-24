@@ -183,4 +183,204 @@ export const OPCODE_REGISTRY: Record<OpcodeName, OpcodeDefinition> = {
       };
     },
   },
+
+  DUP: {
+    name: 'DUP',
+    description: 'Duplicates the top stack item.',
+    educationalSummary: 'Copies the top value on the stack and pushes the duplicate onto the top.',
+    inputDescription: 'Top 1 value on stack',
+    outputDescription: 'Pushes duplicate copy of top value',
+    requiredStackSize: 1,
+    execute: (instruction, stack) => {
+      try {
+        stack.assertMinItems(1, 'DUP');
+      } catch (err) {
+        const underflow = err as StackUnderflowError;
+        return {
+          success: false,
+          explanation: 'Stack underflow on DUP',
+          error: {
+            category: 'STACK_UNDERFLOW',
+            message: `Line ${instruction.line}: ${underflow.message}`,
+            line: instruction.line,
+            instruction: instruction.raw,
+          },
+        };
+      }
+
+      const top = stack.peek()!;
+      stack.push(top);
+      return {
+        success: true,
+        explanation: `Duplicated top stack value (${formatStackValue(top)}).`,
+      };
+    },
+  },
+
+  SUB: {
+    name: 'SUB',
+    description: 'Pops top two numbers, subtracts top from second, pushes result.',
+    educationalSummary: 'Takes the second number from the stack and subtracts the top number (a - b).',
+    inputDescription: 'Top 2 numeric values on stack',
+    outputDescription: 'Pushes difference (first - second)',
+    requiredStackSize: 2,
+    execute: (instruction, stack) => {
+      try {
+        stack.assertMinItems(2, 'SUB');
+      } catch (err) {
+        const underflow = err as StackUnderflowError;
+        return {
+          success: false,
+          explanation: 'Stack underflow on SUB',
+          error: {
+            category: 'STACK_UNDERFLOW',
+            message: `Line ${instruction.line}: ${underflow.message}`,
+            line: instruction.line,
+            instruction: instruction.raw,
+          },
+        };
+      }
+
+      const val2 = stack.pop('SUB');
+      const val1 = stack.pop('SUB');
+
+      if (val1.type !== 'number' || val2.type !== 'number') {
+        stack.push(val1);
+        stack.push(val2);
+        return {
+          success: false,
+          explanation: 'Type mismatch on SUB',
+          error: {
+            category: 'TYPE_ERROR',
+            message: `Line ${instruction.line}: SUB requires numeric values, but found ${val1.type} and ${val2.type}.`,
+            line: instruction.line,
+            instruction: instruction.raw,
+          },
+        };
+      }
+
+      const diff = val1.value - val2.value;
+      stack.push({ type: 'number', value: diff });
+      return {
+        success: true,
+        explanation: `Subtracted ${val2.value} from ${val1.value}, pushed result ${diff}.`,
+      };
+    },
+  },
+
+  DROP: {
+    name: 'DROP',
+    description: 'Removes the top item from the stack.',
+    educationalSummary: 'Pops and discards the top item on the stack without pushing anything.',
+    inputDescription: 'Top 1 value on stack',
+    outputDescription: 'Removes top item',
+    requiredStackSize: 1,
+    execute: (instruction, stack) => {
+      try {
+        stack.assertMinItems(1, 'DROP');
+      } catch (err) {
+        const underflow = err as StackUnderflowError;
+        return {
+          success: false,
+          explanation: 'Stack underflow on DROP',
+          error: {
+            category: 'STACK_UNDERFLOW',
+            message: `Line ${instruction.line}: ${underflow.message}`,
+            line: instruction.line,
+            instruction: instruction.raw,
+          },
+        };
+      }
+
+      const popped = stack.pop('DROP');
+      return {
+        success: true,
+        explanation: `Dropped top value (${formatStackValue(popped)}) from stack.`,
+      };
+    },
+  },
+
+  NOT: {
+    name: 'NOT',
+    description: 'Pops top value and pushes its boolean negation.',
+    educationalSummary: 'If top value is 0 or FALSE, pushes TRUE. Otherwise pushes FALSE.',
+    inputDescription: 'Top 1 value on stack',
+    outputDescription: 'Pushes boolean negation',
+    requiredStackSize: 1,
+    execute: (instruction, stack) => {
+      try {
+        stack.assertMinItems(1, 'NOT');
+      } catch (err) {
+        const underflow = err as StackUnderflowError;
+        return {
+          success: false,
+          explanation: 'Stack underflow on NOT',
+          error: {
+            category: 'STACK_UNDERFLOW',
+            message: `Line ${instruction.line}: ${underflow.message}`,
+            line: instruction.line,
+            instruction: instruction.raw,
+          },
+        };
+      }
+
+      const top = stack.pop('NOT');
+      const isTruthy = top.type === 'boolean' ? top.value : top.value !== 0;
+      const negated = !isTruthy;
+      stack.push({ type: 'boolean', value: negated });
+
+      return {
+        success: true,
+        explanation: `Negated ${formatStackValue(top)} to ${negated ? 'TRUE' : 'FALSE'}.`,
+      };
+    },
+  },
+
+  EQUALVERIFY: {
+    name: 'EQUALVERIFY',
+    description: 'Pops top two values and verifies equality. Halts with error if not equal.',
+    educationalSummary: 'Same as EQUAL followed by VERIFY: consumes top two values and fails transaction immediately if they differ.',
+    inputDescription: 'Top 2 values on stack',
+    outputDescription: 'Consumes top two values if equal; halts with error if not',
+    requiredStackSize: 2,
+    execute: (instruction, stack) => {
+      try {
+        stack.assertMinItems(2, 'EQUALVERIFY');
+      } catch (err) {
+        const underflow = err as StackUnderflowError;
+        return {
+          success: false,
+          explanation: 'Stack underflow on EQUALVERIFY',
+          error: {
+            category: 'STACK_UNDERFLOW',
+            message: `Line ${instruction.line}: ${underflow.message}`,
+            line: instruction.line,
+            instruction: instruction.raw,
+          },
+        };
+      }
+
+      const val2 = stack.pop('EQUALVERIFY');
+      const val1 = stack.pop('EQUALVERIFY');
+
+      const isEqual = val1.type === val2.type && val1.value === val2.value;
+      if (!isEqual) {
+        return {
+          success: false,
+          explanation: 'EQUALVERIFY equality condition failed',
+          error: {
+            category: 'VERIFY_FAILED',
+            message: `Line ${instruction.line}: EQUALVERIFY failed: ${formatStackValue(val1)} does not equal ${formatStackValue(val2)}. Spending condition rejected.`,
+            line: instruction.line,
+            instruction: instruction.raw,
+          },
+        };
+      }
+
+      return {
+        success: true,
+        explanation: `Verified ${formatStackValue(val1)} equals ${formatStackValue(val2)}. Values consumed.`,
+      };
+    },
+  },
 };

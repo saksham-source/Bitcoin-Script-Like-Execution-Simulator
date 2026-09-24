@@ -56,6 +56,7 @@ export class ScriptSimulator {
         step: 0,
         instruction: 'Initial',
         opcode: 'INITIAL',
+        operation: 'Initialize VM',
         stackBefore: [],
         stackAfter: [],
         status: 'INITIAL',
@@ -118,12 +119,26 @@ export class ScriptSimulator {
 
     if (!execResult.success) {
       this.status = 'ERROR';
-      this.error = execResult.error!;
+      this.error = {
+        ...execResult.error!,
+        step: stepNumber,
+        opcode: instruction.opcode,
+      };
+
+      const operation =
+        instruction.opcode === 'PUSH'
+          ? `Push ${instruction.arg}`
+          : instruction.opcode === 'ADD'
+          ? 'Add top 2 values'
+          : instruction.opcode === 'EQUAL'
+          ? 'Compare values'
+          : 'Verify condition';
 
       const errorEntry: TraceEntry = {
         step: stepNumber,
         instruction: instruction.raw,
         opcode: instruction.opcode,
+        operation,
         stackBefore,
         stackAfter,
         status: 'ERROR',
@@ -143,10 +158,20 @@ export class ScriptSimulator {
       return { done: true, entry: errorEntry, error: this.error, result: this.finalResult };
     }
 
+    const operation =
+      instruction.opcode === 'PUSH'
+        ? `Push ${instruction.arg}`
+        : instruction.opcode === 'ADD'
+        ? 'Add top 2 values'
+        : instruction.opcode === 'EQUAL'
+        ? 'Compare values'
+        : 'Verify condition';
+
     const okEntry: TraceEntry = {
       step: stepNumber,
       instruction: instruction.raw,
       opcode: instruction.opcode,
+      operation,
       stackBefore,
       stackAfter,
       status: 'OK',
@@ -162,6 +187,39 @@ export class ScriptSimulator {
     }
 
     return { done: false, entry: okEntry };
+  }
+
+  /**
+   * Jump directly to a historical step (0 to instructions.length).
+   * Replays cleanly to guarantee deterministic state.
+   */
+  public jumpToStep(targetStepNumber: number): void {
+    if (targetStepNumber < 0 || targetStepNumber > this.instructions.length) {
+      return;
+    }
+    // Reset to step 0
+    this.reset();
+    for (let i = 0; i < targetStepNumber; i++) {
+      const { done } = this.step();
+      if (done) break;
+    }
+  }
+
+  /**
+   * Step backward one instruction in execution history.
+   */
+  public stepBack(): void {
+    if (this.currentStepIndex > 0) {
+      this.jumpToStep(this.currentStepIndex - 1);
+    }
+  }
+
+  public canStepBack(): boolean {
+    return this.currentStepIndex > 0;
+  }
+
+  public canStepForward(): boolean {
+    return this.currentStepIndex < this.instructions.length && this.status !== 'ERROR' && this.status !== 'COMPLETED';
   }
 
   /**

@@ -156,4 +156,35 @@ describe('Phase 5: Execution Lifecycle and Trace System', () => {
 
     expect(run1).toEqual(run2);
   });
+
+  it('supports stepping backwards and time travel jumping to steps', () => {
+    const script = `
+      PUSH 5
+      PUSH 3
+      ADD
+    `;
+
+    const sim = new ScriptSimulator(script);
+    sim.runAll();
+    expect(sim.getCurrentStepIndex()).toBe(3);
+    expect(sim.getStack()).toEqual([{ type: 'number', value: 8 }]);
+
+    // Step back to Step 2 (after PUSH 3)
+    sim.stepBack();
+    expect(sim.getCurrentStepIndex()).toBe(2);
+    expect(sim.getStack()).toEqual([
+      { type: 'number', value: 5 },
+      { type: 'number', value: 3 },
+    ]);
+
+    // Step back to Step 1 (after PUSH 5)
+    sim.stepBack();
+    expect(sim.getCurrentStepIndex()).toBe(1);
+    expect(sim.getStack()).toEqual([{ type: 'number', value: 5 }]);
+
+    // Jump directly forward to Step 3 (ADD)
+    sim.jumpToStep(3);
+    expect(sim.getCurrentStepIndex()).toBe(3);
+    expect(sim.getStack()).toEqual([{ type: 'number', value: 8 }]);
+  });
 });

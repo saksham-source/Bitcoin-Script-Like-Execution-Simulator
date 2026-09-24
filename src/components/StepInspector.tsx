@@ -7,17 +7,19 @@ import { Info, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface StepInspectorProps {
   currentEntry?: TraceEntry;
+  currentStepIndex: number;
   totalSteps: number;
 }
 
 export const StepInspector: React.FC<StepInspectorProps> = ({
   currentEntry,
+  currentStepIndex,
   totalSteps,
 }) => {
   if (!currentEntry) {
     return (
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl flex items-center justify-center text-slate-500 text-xs italic">
-        Ready to execute. Click &quot;Step Next&quot; or &quot;Run All&quot; to inspect operations.
+      <div className="bg-[#161F30] border border-[#1E293B] rounded p-4 text-xs font-mono text-[#64748B] flex items-center justify-center italic">
+        Ready to execute. Use the control bar to step or run the script.
       </div>
     );
   }
@@ -28,77 +30,82 @@ export const StepInspector: React.FC<StepInspectorProps> = ({
       : null;
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl flex flex-col justify-between">
-      {/* Top Header */}
+    <div className="bg-[#161F30] border border-[#1E293B] rounded p-4 shadow-sm flex flex-col justify-between">
+      {/* Top Meta Header */}
       <div>
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+        <div className="flex items-center justify-between pb-2.5 border-b border-[#1E293B] mb-3">
           <div className="flex items-center gap-2">
-            <Info className="w-4 h-4 text-amber-400" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Active Step Inspector
-            </h3>
+            <Info className="w-4 h-4 text-[#F7931A]" />
+            <h4 className="text-xs font-sans font-semibold uppercase tracking-wider text-[#94A3B8]">
+              Current Step Inspector
+            </h4>
           </div>
-          <span className="text-xs font-mono font-medium text-slate-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
-            Step {currentEntry.step} of {totalSteps}
-          </span>
+          <div className="flex items-center gap-2 font-mono text-xs">
+            <span className="text-[#94A3B8] bg-[#111827] px-2 py-0.5 rounded border border-[#1E293B]">
+              Step <strong className="text-[#F8FAFC]">{currentEntry.step}</strong> of {totalSteps}
+            </span>
+          </div>
         </div>
 
         {/* Current Instruction Banner */}
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-base font-extrabold text-amber-400 px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/20">
-                {currentEntry.instruction}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-base font-extrabold text-[#F7931A] px-2.5 py-0.5 rounded bg-[#F7931A]/10 border border-[#F7931A]/30">
+              {currentEntry.instruction}
+            </span>
+
+            {currentEntry.status === 'OK' && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-mono font-semibold text-[#10B981] bg-[#10B981]/10 px-2 py-0.5 rounded border border-[#10B981]/20">
+                <CheckCircle2 className="w-3.5 h-3.5" /> OK
               </span>
-              {currentEntry.status === 'OK' && (
-                <span className="flex items-center gap-1 text-[11px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> OK
-                </span>
-              )}
-              {currentEntry.status === 'ERROR' && (
-                <span className="flex items-center gap-1 text-[11px] text-rose-400 font-semibold bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
-                  <AlertCircle className="w-3.5 h-3.5" /> ERROR
-                </span>
-              )}
-            </div>
-            {opcodeInfo && (
-              <p className="text-xs text-slate-300 mt-2 font-medium">
-                {opcodeInfo.description}
-              </p>
+            )}
+            {currentEntry.status === 'ERROR' && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-mono font-semibold text-[#EF4444] bg-[#EF4444]/10 px-2 py-0.5 rounded border border-[#EF4444]/20">
+                <AlertCircle className="w-3.5 h-3.5" /> FAILED
+              </span>
+            )}
+            {currentEntry.status === 'INITIAL' && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-mono text-[#94A3B8] bg-[#111827] px-2 py-0.5 rounded border border-[#1E293B]">
+                VM INITIALIZED
+              </span>
             )}
           </div>
+
+          {opcodeInfo && (
+            <span className="text-xs font-mono text-[#38BDF8] bg-[#38BDF8]/10 px-2 py-0.5 rounded border border-[#38BDF8]/20">
+              Needs {opcodeInfo.requiredStackSize} on stack
+            </span>
+          )}
         </div>
 
-        {/* Educational explanation */}
-        {currentEntry.explanation && (
-          <div className="bg-slate-950/70 border border-slate-800/80 rounded-lg p-3 text-xs text-slate-300 leading-relaxed mb-4">
-            <span className="text-slate-500 font-medium">Execution Summary: </span>
-            {currentEntry.explanation}
-          </div>
-        )}
+        {/* Dynamic Opcode Explanation */}
+        <div className="bg-[#111827] border border-[#1E293B] rounded p-3 text-xs leading-relaxed text-[#94A3B8] mb-3">
+          <span className="text-[#F8FAFC] font-semibold font-sans">Operation Effect: </span>
+          <span>{currentEntry.explanation || opcodeInfo?.educationalSummary || 'System state update.'}</span>
+        </div>
       </div>
 
-      {/* Stack Transition Diff: Before -> After */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800/80 font-mono text-xs">
-        <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
-          <div className="text-[10px] text-slate-500 uppercase tracking-wider font-sans mb-1">
+      {/* Stack Transition Before / After Diff */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#1E293B] font-mono text-xs">
+        <div className="bg-[#111827] p-2.5 rounded border border-[#1E293B]">
+          <div className="text-[10px] text-[#64748B] uppercase tracking-wider font-sans font-semibold mb-1">
             Stack Before:
           </div>
-          <div className="text-slate-300 font-bold truncate">
+          <div className="text-[#94A3B8] font-bold truncate">
             {formatStack(currentEntry.stackBefore)}
           </div>
         </div>
 
-        <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between">
+        <div className="bg-[#111827] p-2.5 rounded border border-[#1E293B] flex items-center justify-between">
           <div className="flex-1 truncate">
-            <div className="text-[10px] text-slate-500 uppercase tracking-wider font-sans mb-1">
+            <div className="text-[10px] text-[#64748B] uppercase tracking-wider font-sans font-semibold mb-1">
               Stack After:
             </div>
-            <div className="text-amber-400 font-bold truncate">
+            <div className="text-[#F7931A] font-bold truncate">
               {formatStack(currentEntry.stackAfter)}
             </div>
           </div>
-          <ArrowRight className="w-4 h-4 text-amber-500 shrink-0 ml-2" />
+          <ArrowRight className="w-4 h-4 text-[#F7931A] shrink-0 ml-2" />
         </div>
       </div>
     </div>

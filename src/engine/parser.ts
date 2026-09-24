@@ -1,6 +1,16 @@
 import { Instruction, OpcodeName, ExecutionError } from './types';
 
-export const SUPPORTED_OPCODES: readonly OpcodeName[] = ['PUSH', 'ADD', 'EQUAL', 'VERIFY'] as const;
+export const SUPPORTED_OPCODES: readonly OpcodeName[] = [
+  'PUSH',
+  'ADD',
+  'EQUAL',
+  'VERIFY',
+  'DUP',
+  'SUB',
+  'DROP',
+  'NOT',
+  'EQUALVERIFY',
+] as const;
 
 export interface ParseSuccess {
   success: true;

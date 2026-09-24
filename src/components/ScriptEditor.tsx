@@ -1,176 +1,206 @@
 'use client';
 
 import React from 'react';
-import { Play, SkipForward, RotateCcw, Code, AlertTriangle } from 'lucide-react';
+import {
+  Code2,
+  Trash2,
+  CheckCircle,
+  Play,
+  AlertTriangle,
+  FolderOpen,
+} from 'lucide-react';
 import { DEMO_PRESETS, ScriptPreset } from '@/engine/presets';
 import { Instruction, ExecutionError } from '@/engine/types';
 
 interface ScriptEditorProps {
   script: string;
   onChange: (value: string) => void;
+  onClear: () => void;
+  onValidate: () => void;
   onRun: () => void;
-  onStep: () => void;
-  onReset: () => void;
   onSelectPreset: (preset: ScriptPreset) => void;
   currentStepIndex: number;
   instructions: Instruction[];
   isStepping: boolean;
   isCompleted: boolean;
   error: ExecutionError | null;
+  validationNotice: string | null;
 }
 
 export const ScriptEditor: React.FC<ScriptEditorProps> = ({
   script,
   onChange,
+  onClear,
+  onValidate,
   onRun,
-  onStep,
-  onReset,
   onSelectPreset,
   currentStepIndex,
   instructions,
   isStepping,
   isCompleted,
   error,
+  validationNotice,
 }) => {
   const lines = script.split('\n');
+  const currentInstruction = instructions[currentStepIndex];
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex flex-col shadow-xl">
-      {/* Top bar with preset selector */}
-      <div className="bg-slate-950/70 border-b border-slate-800 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+    <div className="bg-[#111827] border border-[#1E293B] rounded flex flex-col shadow-sm overflow-hidden h-full">
+      {/* Top Editor Toolbar */}
+      <div className="bg-[#161F30] border-b border-[#1E293B] px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
         <div className="flex items-center gap-2">
-          <Code className="w-4 h-4 text-amber-400" />
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-            Script Source Editor
+          <Code2 className="w-4 h-4 text-[#F7931A]" />
+          <span className="font-semibold text-xs tracking-tight text-[#F8FAFC]">
+            Script Editor (ASM)
+          </span>
+          <span className="font-mono text-[10px] text-[#64748B] bg-[#111827] px-2 py-0.5 rounded border border-[#1E293B]">
+            {instructions.length} {instructions.length === 1 ? 'Opcode' : 'Opcodes'}
           </span>
         </div>
 
-        {/* Demo Presets dropdown */}
-        <div className="flex items-center gap-2">
-          <label htmlFor="preset-select" className="text-xs text-slate-400 font-medium">
-            Demo Presets:
-          </label>
-          <select
-            id="preset-select"
-            className="bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer"
-            onChange={(e) => {
-              const selected = DEMO_PRESETS.find((p) => p.id === e.target.value);
-              if (selected) onSelectPreset(selected);
-            }}
-            defaultValue=""
-          >
-            <option value="" disabled>
-              Select a lab scenario...
-            </option>
-            {DEMO_PRESETS.map((preset) => (
-              <option key={preset.id} value={preset.id}>
-                {preset.name}
+        {/* Toolbar Action Buttons */}
+        <div className="flex items-center gap-1.5">
+          {/* Preset Selector */}
+          <div className="flex items-center gap-1 bg-[#111827] px-2 py-1 rounded border border-[#1E293B]">
+            <FolderOpen className="w-3.5 h-3.5 text-[#94A3B8]" />
+            <label htmlFor="preset-select" className="sr-only">
+              Load Example
+            </label>
+            <select
+              id="preset-select"
+              className="bg-transparent text-xs text-[#94A3B8] hover:text-[#F8FAFC] focus:outline-none cursor-pointer"
+              onChange={(e) => {
+                const selected = DEMO_PRESETS.find((p) => p.id === e.target.value);
+                if (selected) onSelectPreset(selected);
+              }}
+              defaultValue=""
+            >
+              <option value="" disabled>
+                Load Example...
               </option>
-            ))}
-          </select>
+              {DEMO_PRESETS.map((preset) => (
+                <option key={preset.id} value={preset.id} className="bg-[#161F30] text-[#F8FAFC]">
+                  {preset.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Validate */}
+          <button
+            onClick={onValidate}
+            className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-[#94A3B8] hover:text-[#F8FAFC] bg-[#111827] hover:bg-[#1E293B] rounded border border-[#1E293B] transition"
+            title="Validate Script Syntax"
+          >
+            <CheckCircle className="w-3.5 h-3.5 text-[#38BDF8]" />
+            <span>Validate</span>
+          </button>
+
+          {/* Clear */}
+          <button
+            onClick={onClear}
+            className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-[#94A3B8] hover:text-[#EF4444] bg-[#111827] hover:bg-[#1E293B] rounded border border-[#1E293B] transition"
+            title="Clear Editor"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Clear</span>
+          </button>
+
+          {/* Run Script */}
+          <button
+            onClick={onRun}
+            disabled={isCompleted}
+            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded transition shadow-sm ${
+              isCompleted
+                ? 'bg-[#1E293B] text-[#64748B] cursor-not-allowed'
+                : 'bg-[#F7931A] hover:bg-[#E87A0C] text-[#0B0F17]'
+            }`}
+            title="Run Script (Ctrl+Enter)"
+          >
+            <Play className="w-3 h-3 fill-current" />
+            <span>Run Script</span>
+          </button>
         </div>
       </div>
 
-      {/* Editor Main Content with Line Numbers & Active Line Highlight */}
-      <div className="relative flex-1 min-h-[220px] max-h-[340px] flex overflow-hidden font-mono text-sm bg-slate-950">
-        {/* Line Numbers */}
-        <div className="w-12 bg-slate-950 border-r border-slate-800/80 py-3 select-none flex flex-col items-end pr-3 text-slate-600 font-mono text-xs">
+      {/* Editor Surface with Line Numbers Gutter */}
+      <div className="relative flex-1 min-h-[260px] max-h-[360px] flex overflow-hidden font-mono text-xs sm:text-sm bg-[#111827]">
+        {/* Line Numbers Gutter */}
+        <div className="w-11 bg-[#0B0F17] border-r border-[#1E293B] py-3 select-none flex flex-col items-end pr-2 text-[#64748B] font-mono text-xs">
           {lines.map((_, i) => {
             const lineNum = i + 1;
-            const currentInstruction = instructions[currentStepIndex];
             const isCurrentLine =
               isStepping &&
               !isCompleted &&
               currentInstruction &&
               currentInstruction.line === lineNum;
+            const isErrorLine = error && error.line === lineNum;
 
             return (
               <div
                 key={i}
-                className={`h-6 leading-6 ${
-                  isCurrentLine ? 'text-amber-400 font-bold' : ''
+                className={`h-6 leading-6 flex items-center gap-1 ${
+                  isErrorLine
+                    ? 'text-[#EF4444] font-bold'
+                    : isCurrentLine
+                    ? 'text-[#F7931A] font-bold'
+                    : 'text-[#64748B]'
                 }`}
               >
-                {lineNum}
+                {isErrorLine && <span className="text-[10px]">⚠</span>}
+                {isCurrentLine && !isErrorLine && <span className="text-[10px]">▶</span>}
+                <span>{lineNum}</span>
               </div>
             );
           })}
         </div>
 
-        {/* Editor Area */}
+        {/* Text Input Area */}
         <div className="relative flex-1 flex flex-col">
           <textarea
             value={script}
             onChange={(e) => onChange(e.target.value)}
-            disabled={isStepping}
-            placeholder="Enter script instructions (e.g., PUSH 5)..."
+            disabled={isStepping && !isCompleted}
+            placeholder={`Enter script instructions...\n\nPUSH 5\nPUSH 3\nADD\nPUSH 8\nEQUAL`}
             spellCheck={false}
-            className={`w-full h-full p-3 bg-transparent text-slate-100 placeholder:text-slate-600 resize-none font-mono text-xs md:text-sm leading-6 focus:outline-none focus:ring-0 ${
-              isStepping ? 'cursor-not-allowed opacity-90' : ''
+            className={`w-full h-full p-3 bg-transparent text-[#F8FAFC] placeholder:text-[#64748B] resize-none font-mono text-xs sm:text-sm leading-6 focus:outline-none focus:ring-1 focus:ring-[#38BDF8] border-none ${
+              isStepping && !isCompleted ? 'cursor-not-allowed opacity-90' : ''
             }`}
             style={{ tabSize: 2 }}
           />
 
-          {/* Stepping Indicator overlay */}
-          {isStepping && (
-            <div className="absolute top-2 right-3 pointer-events-none bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded text-[11px] text-amber-400 animate-pulse font-sans font-medium">
+          {/* Stepping Indicator overlay badge */}
+          {isStepping && !isCompleted && (
+            <div className="absolute top-2 right-3 pointer-events-none bg-[#F7931A]/10 border border-[#F7931A]/30 px-2 py-0.5 rounded text-[11px] text-[#F7931A] animate-pulse font-sans font-medium">
               Step Mode Active
             </div>
           )}
         </div>
       </div>
 
-      {/* Inline Parser Error Notification */}
+      {/* Validation / Error Notification Bar */}
       {error && (error.category === 'PARSER_ERROR' || error.category === 'UNKNOWN_OPCODE' || error.category === 'MISSING_ARGUMENT') && (
-        <div className="bg-rose-950/40 border-t border-rose-900/50 p-3 px-4 flex items-start gap-2.5 text-xs text-rose-300">
-          <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <span className="font-semibold text-rose-200">Validation Notice: </span>
+        <div className="bg-[#EF4444]/10 border-t border-[#EF4444]/30 p-2.5 px-3.5 flex items-start gap-2 text-xs text-[#EF4444] font-mono">
+          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-[#EF4444]" />
+          <div>
+            <strong className="text-[#EF4444] font-bold">[{error.category}]: </strong>
             <span>{error.message}</span>
           </div>
         </div>
       )}
 
-      {/* Control Buttons Footer */}
-      <div className="bg-slate-950/90 border-t border-slate-800 p-3 px-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          {/* Step Button */}
-          <button
-            onClick={onStep}
-            disabled={isCompleted}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all shadow-sm ${
-              isCompleted
-                ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-800'
-                : 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/10 hover:shadow-amber-500/20 active:scale-95'
-            }`}
-          >
-            <SkipForward className="w-4 h-4" />
-            <span>{currentStepIndex === 0 ? 'Start Step-by-Step' : 'Step Next'}</span>
-          </button>
-
-          {/* Run All Button */}
-          <button
-            onClick={onRun}
-            disabled={isCompleted}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold tracking-wide border transition-all ${
-              isCompleted
-                ? 'bg-slate-800/50 text-slate-500 border-slate-800 cursor-not-allowed'
-                : 'bg-slate-800 hover:bg-slate-700 text-slate-100 border-slate-700 hover:border-slate-600 active:scale-95'
-            }`}
-          >
-            <Play className="w-4 h-4 text-emerald-400 fill-emerald-400" />
-            <span>Run All</span>
-          </button>
+      {/* Success Validation Notice */}
+      {!error && validationNotice && (
+        <div className="bg-[#10B981]/10 border-t border-[#10B981]/30 p-2 px-3.5 flex items-center gap-2 text-xs text-[#10B981] font-mono">
+          <CheckCircle className="w-3.5 h-3.5 shrink-0" />
+          <span>{validationNotice}</span>
         </div>
+      )}
 
-        {/* Reset Button */}
-        <button
-          onClick={onReset}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-colors"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-          <span>Reset</span>
-        </button>
+      {/* Editor Footer Status Bar */}
+      <div className="bg-[#161F30] border-t border-[#1E293B] px-3.5 py-1.5 flex items-center justify-between text-[11px] font-mono text-[#64748B]">
+        <span>Lines: {lines.length} • Encoding: ASCII/ASM</span>
+        <span className="text-[#94A3B8]">Bitcoin Script Educational Subset</span>
       </div>
     </div>
   );
