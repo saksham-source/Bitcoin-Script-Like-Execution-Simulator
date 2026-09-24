@@ -10,15 +10,26 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        canvas: '#0B0F17',
+        canvas: {
+          DEFAULT: '#0B0F17',
+          dark: '#0B0F17',
+          surface: '#161F30',
+          subtle: '#111827',
+        },
         surface: {
           1: '#111827',
           2: '#161F30',
           3: '#1E293B',
         },
         border: {
+          DEFAULT: '#1E293B',
           default: '#1E293B',
+          subtle: '#1E293B',
           active: '#334155',
+        },
+        bitcoin: {
+          DEFAULT: '#F7931A',
+          hover: '#E87A0C',
         },
         btc: {
           50: '#fff9ed',

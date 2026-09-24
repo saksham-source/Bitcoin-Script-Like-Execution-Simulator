@@ -252,6 +252,8 @@ export const SimulatorContainer: React.FC = () => {
 
   const isStepping = currentStepIndex > 0;
   const isCompleted = status === 'COMPLETED' || status === 'ERROR';
+  const nextInstruction =
+    currentStepIndex < instructions.length ? instructions[currentStepIndex] : null;
 
   return (
     <div className="min-h-screen flex flex-col bg-canvas-dark text-slate-100 font-sans selection:bg-bitcoin selection:text-canvas-dark pb-16">
@@ -268,7 +270,7 @@ export const SimulatorContainer: React.FC = () => {
       <main className="max-w-7xl w-full mx-auto px-4 md:px-6 py-6 flex-1">
         {activeTab === 'simulator' && (
           <div className="space-y-6">
-            {/* Top Grid: Script Editor + Stack Visualizer */}
+            {/* Top Grid: Script Editor (Left) + Current Opcode & Stack (Right) */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
               {/* Left Column: Script Editor */}
               <div className="lg:col-span-7 flex flex-col">
@@ -288,9 +290,17 @@ export const SimulatorContainer: React.FC = () => {
                 />
               </div>
 
-              {/* Right Column: Visual Stack */}
-              <div className="lg:col-span-5 flex flex-col">
-                <StackVisualizer stack={stack} />
+              {/* Right Column: Current Opcode Inspector & Stack Visualizer */}
+              <div className="lg:col-span-5 flex flex-col gap-4">
+                <StepInspector
+                  currentEntry={activeTraceEntry}
+                  currentStepIndex={currentStepIndex}
+                  totalSteps={instructions.length}
+                  nextInstruction={nextInstruction}
+                />
+                <div className="flex-1">
+                  <StackVisualizer stack={stack} />
+                </div>
               </div>
             </div>
 
@@ -310,13 +320,6 @@ export const SimulatorContainer: React.FC = () => {
               onTogglePlay={handleTogglePlay}
               onStepNext={handleStep}
               onRunAll={handleRunAll}
-            />
-
-            {/* Current Opcode / Step Inspector */}
-            <StepInspector
-              currentEntry={activeTraceEntry}
-              currentStepIndex={currentStepIndex}
-              totalSteps={instructions.length}
             />
 
             {/* Final Result / Diagnostic Evaluation Banner */}

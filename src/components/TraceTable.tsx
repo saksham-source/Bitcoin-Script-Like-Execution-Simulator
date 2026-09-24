@@ -94,7 +94,7 @@ export const TraceTable: React.FC<TraceTableProps> = ({
                     <td className="py-2 px-3.5 text-[#94A3B8]">
                       {formatStack(entry.stackBefore)}
                     </td>
-                    <td className="py-2 px-3.5 text-[#64748B] italic truncate max-w-[180px]">
+                    <td className="py-2 px-3.5 text-[#94A3B8] truncate max-w-[200px]">
                       {entry.operation || entry.explanation || '—'}
                     </td>
                     <td className="py-2 px-3.5 text-[#F7931A] font-semibold">

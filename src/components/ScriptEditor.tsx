@@ -124,7 +124,7 @@ export const ScriptEditor: React.FC<ScriptEditorProps> = ({
       </div>
 
       {/* Editor Surface with Line Numbers Gutter */}
-      <div className="relative flex-1 min-h-[260px] max-h-[360px] flex overflow-hidden font-mono text-xs sm:text-sm bg-[#111827]">
+      <div className="relative flex-1 min-h-[340px] lg:min-h-[440px] flex overflow-hidden font-mono text-xs sm:text-sm bg-[#111827]">
         {/* Line Numbers Gutter */}
         <div className="w-11 bg-[#0B0F17] border-r border-[#1E293B] py-3 select-none flex flex-col items-end pr-2 text-[#64748B] font-mono text-xs">
           {lines.map((_, i) => {
